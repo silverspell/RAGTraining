@@ -4,6 +4,8 @@ import json
 import numpy as np
 from dataclasses import dataclass
 from FlagEmbedding import BGEM3FlagModel
+import os
+import google.genai as genai
 
 
 @dataclass
@@ -75,3 +77,75 @@ def embed_query_bge_m3(
     )
     vec = np.asarray(out["dense_vecs"][0], dtype=np.float32)
     return vec
+
+
+# -------------------------
+def ask_gemini(query: str, source_id: str | None = None) -> str:
+
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+    q_vec = embed_query_bge_m3(
+            query,
+            model_name="BAAI/bge-m3",
+            use_fp16=True,
+            max_length=256,
+        )
+    
+    #print("Query vector:", q_vec)
+    corpus = load_corpus("data/corpus_tr_bge_m3.jsonl")
+
+    rankings = rank_against_corpus(q_vec, corpus, top_k=3, source_id=source_id)
+    
+    """
+    print("Top rankings:")
+    for row, score in rankings:
+        print(f"ID: {row.id}, Score: {score:.4f}, Text: {row.text[:100]}..., Metadata: {row.metadata}")
+    """
+
+    chunks = [(r.text, r.metadata["source_id"]) for r, s in rankings if s > 0.5]
+
+    context = "Context:\n" + "\n\n".join([f"- {chunk[0]} (Kaynak: {chunk[1]})" for chunk in chunks])
+    final_prompt = f"""
+        Aşağıdaki "KAYNAKLAR" bölümünde verilen bilgileri kullanarak, "SORU"yu yanıtla.
+        Eğer kaynaklar soruyu yanıtlamak için yeterli değilse, "Bilmiyorum" diye cevap ver.
+        Cevapta context içerisinde kullandığın (Kaynak: ) oalrak geçen kaynakların adlarını belirt.
+
+        KAYNAKLAR:
+        {context}
+
+        SORU:
+        {query}
+
+        Cevap:
+    """
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=final_prompt
+    )
+
+    return response.text
+
+def rank_against_corpus(
+    q_vec: np.ndarray,
+    corpus: List[CorpusRow],
+    *,
+    top_k: int = 10,
+    source_id: str | None = None,
+) -> Dict[str, List[Tuple[CorpusRow, float]]]:
+
+    if source_id is not None: 
+        filtered_corpus = [r for r in corpus if r.metadata.get("source_id") == source_id]
+    else:
+        filtered_corpus = corpus
+
+    cos_scores = np.array([cosine_similarity(q_vec, r.vector) for r in filtered_corpus], dtype=np.float32)
+
+    # Get top_k indices
+    k = min(top_k, len(filtered_corpus))
+
+    cos_idx = np.argpartition(-cos_scores, kth=k-1)[:k]
+    cos_idx = cos_idx[np.argsort(-cos_scores[cos_idx])]
+
+    cosine_rank = [(filtered_corpus[i], float(cos_scores[i])) for i in cos_idx]
+
+    return cosine_rank

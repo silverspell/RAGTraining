@@ -10,7 +10,7 @@ import argparse
 
 import numpy as np
 
-from utils import CorpusRow, load_corpus, cosine_similarity, embed_query_bge_m3
+from utils import CorpusRow, load_corpus, cosine_similarity, embed_query_bge_m3, ask_gemini
 
 from transformers.utils import logging as hf_logging
 hf_logging.set_verbosity_error()
@@ -59,50 +59,10 @@ def main():
 
     args = ap.parse_args()
     
-    ask_gemini(args.query, args.source_id)
-
-def ask_gemini(query: str, source_id: str | None = None) -> None:
-
-    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
-
-    q_vec = embed_query_bge_m3(
-            query,
-            model_name="BAAI/bge-m3",
-            use_fp16=True,
-            max_length=256,
-        )
+    response = ask_gemini(args.query, args.source_id)
+    print(f"Gemini response: {response}")
     
-    #print("Query vector:", q_vec)
-    corpus = load_corpus("data/corpus_tr_bge_m3.jsonl")
 
-    rankings = rank_against_corpus(q_vec, corpus, top_k=3, source_id=source_id)
-    
-    """
-    print("Top rankings:")
-    for row, score in rankings:
-        print(f"ID: {row.id}, Score: {score:.4f}, Text: {row.text[:100]}..., Metadata: {row.metadata}")
-    """
-
-    chunks = [r.text for r, s in rankings if s > 0.5]
-
-    context = "Context:\n" + "\n\n".join([f"- {chunk}" for chunk in chunks])
-    final_prompt = f"""
-        Aşağıdaki "KAYNAKLAR" bölümünde verilen bilgileri kullanarak, "SORU"yu yanıtla. Eğer kaynaklar soruyu yanıtlamak için yeterli değilse, "Bilmiyorum" diye cevap ver.
-        KAYNAKLAR:
-        {context}
-
-        SORU:
-        {query}
-
-        Cevap:
-    """
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=final_prompt
-    )
-
-    print("----------- Gemini Yanıtı -----------")
-    print(response.text)
 
 if __name__ == "__main__":
     main()
