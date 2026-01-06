@@ -28,8 +28,8 @@ q_client.create_collection(
 def ingest_document(doc_id, text, metadata):
     outputs = embedding_model.encode([text], return_dense=True, return_sparse=True)
     
-    dense_vec = outputs['dense_vecs'][0].tolist()
-    sparse_dict = outputs['lexical_weights'][0]
+    dense_vec = outputs["dense_vecs"][0].tolist()
+    sparse_dict = outputs["lexical_weights"][0]
     sparse_vec = models.SparseVector(
         indices=[int(i) for i in sparse_dict.keys()],
         values=list(sparse_dict.values())
@@ -63,11 +63,11 @@ def ask_question(query):
     search_results = q_client.query_points(
         collection_name=COLLECTION_NAME,
         prefetch=[
-            models.Prefetch(query=query_outputs['dense_vecs'][0].tolist(), using="dense", limit=20),
+            models.Prefetch(query=query_outputs["dense_vecs"][0].tolist(), using="dense", limit=20),
             models.Prefetch(
                 query=models.SparseVector(
-                    indices=[int(i) for i in query_outputs['lexical_weights'][0].keys()],
-                    values=list(query_outputs['lexical_weights'][0].values())
+                    indices=[int(i) for i in query_outputs["lexical_weights"][0].keys()],
+                    values=list(query_outputs["lexical_weights"][0].values())
                 ),
                 using="sparse",
                 limit=20
@@ -76,7 +76,7 @@ def ask_question(query):
         query=models.FusionQuery(fusion=models.Fusion.RRF)
     )
     
-    candidates = [res.payload['text'] for res in search_results.points]
+    candidates = [res.payload["text"] for res in search_results.points]
     
     print("----------RERANKER ÖNCESİ----------")
     for i, candidate in enumerate(candidates, 1):
