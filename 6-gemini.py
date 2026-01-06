@@ -1,16 +1,6 @@
-import dis
-import google.genai as genai
-import os
 from dotenv import load_dotenv
-import json
-from dataclasses import dataclass
-from pathlib import Path
-from typing import Any, Dict, List, Tuple
 import argparse
-
-import numpy as np
-
-from utils import CorpusRow, load_corpus, cosine_similarity, embed_query_bge_m3, ask_gemini
+from utils import ask_gemini
 
 from transformers.utils import logging as hf_logging
 hf_logging.set_verbosity_error()

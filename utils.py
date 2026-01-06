@@ -111,7 +111,7 @@ def ask_gemini(query: str, source_id: str | None = None) -> str:
     final_prompt = f"""
         Aşağıdaki "KAYNAKLAR" bölümünde verilen bilgileri kullanarak, "SORU"yu yanıtla.
         Eğer kaynaklar soruyu yanıtlamak için yeterli değilse, "Bilmiyorum" diye cevap ver.
-        Cevapta context içerisinde kullandığın (Kaynak: ) oalrak geçen kaynakların adlarını belirt.
+        Cevapta context içerisinde kullandığın (Kaynak: ) olarak geçen kaynakların adlarını belirt.
 
         KAYNAKLAR:
         {context}
