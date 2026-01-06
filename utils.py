@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from FlagEmbedding import BGEM3FlagModel
 import os
 import google.genai as genai
+from dotenv import load_dotenv
 
 
 @dataclass
@@ -81,6 +82,8 @@ def embed_query_bge_m3(
 
 # -------------------------
 def ask_gemini(query: str, source_id: str | None = None) -> str:
+    if os.getenv("GOOGLE_API_KEY") is None:
+        load_dotenv()
 
     client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
@@ -119,7 +122,7 @@ def ask_gemini(query: str, source_id: str | None = None) -> str:
         Cevap:
     """
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.5-flash-lite",
         contents=final_prompt
     )
 
