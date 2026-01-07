@@ -43,6 +43,10 @@ def create_embedding(
     pass
 
 
+def ask_gemini(query: str, model_name: str = "gemini-2.5-flash") -> str:
+    pass
+
+
 ## Similarity Funcs
 
 def dot(a: np.ndarray, b: np.ndarray) -> float:
