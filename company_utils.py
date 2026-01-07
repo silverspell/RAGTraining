@@ -1,11 +1,17 @@
-from ast import Tuple
 import numpy as np
-from typing import Any
+from typing import Any, Tuple
 from FlagEmbedding import BGEM3FlagModel
 
 
 def load_text(txt_path: str)->str:
     pass
+
+def create_text_from_pdf(pdf_path: str)->str:
+    """
+    Refer to: https://docling-project.github.io/docling/examples/
+    """
+    pass
+
 
 def create_text_splitter(
         docs: list,
@@ -44,6 +50,9 @@ def create_embedding(
 
 
 def ask_gemini(query: str, model_name: str = "gemini-2.5-flash") -> str:
+    """
+    Refer: https://ai.google.dev/api/generate-content
+    """
     pass
 
 
