@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
 import argparse
-from utils import ask_gemini
+from utils import ask_gemini, ask_gemini_cli
 
 from transformers.utils import logging as hf_logging
 hf_logging.set_verbosity_error()
@@ -16,7 +16,7 @@ def main():
 
     args = ap.parse_args()
     
-    response = ask_gemini(args.query, args.source_id)
+    response = ask_gemini_cli(args.query, args.source_id)
     print(f"Gemini response: {response}")
     
 

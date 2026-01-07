@@ -128,6 +128,55 @@ def ask_gemini(query: str, source_id: str | None = None) -> str:
 
     return response.text
 
+
+def ask_gemini_cli(query: str, source_id: str | None = None) -> str:
+    if os.getenv("GOOGLE_API_KEY") is None:
+        load_dotenv()
+
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+    q_vec = embed_query_bge_m3(
+            query,
+            model_name="BAAI/bge-m3",
+            use_fp16=True,
+            max_length=256,
+        )
+    
+    #print("Query vector:", q_vec)
+    corpus = load_corpus("data/corpus_tr_bge_m3.jsonl")
+
+    rankings = rank_against_corpus(q_vec, corpus, top_k=3, source_id=source_id)
+    
+    
+    print("Top rankings:")
+    for row, score in rankings:
+        print(f"ID: {row.id}, Score: {score:.4f}, Text: {row.text[:100]}..., Metadata: {row.metadata}")
+    
+
+    chunks = [(r.text, r.metadata["source_id"]) for r, s in rankings]
+
+
+    context = "Context:\n" + "\n\n".join([f"- {chunk[0]} (Kaynak: {chunk[1]})" for chunk in chunks])
+    final_prompt = f"""
+        Aşağıdaki "KAYNAKLAR" bölümünde verilen bilgileri kullanarak, "SORU"yu yanıtla.
+        Cevapta context içerisinde kullandığın (Kaynak: ) olarak geçen kaynakların adlarını belirt.
+
+        KAYNAKLAR:
+        {context}
+
+        SORU:
+        {query}
+
+        Cevap:
+    """
+    response = client.models.generate_content(
+        model="gemini-2.5-flash-lite",
+        contents=final_prompt
+    )
+
+    return response.text
+
+
 def rank_against_corpus(
     q_vec: np.ndarray,
     corpus: List[CorpusRow],
