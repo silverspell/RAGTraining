@@ -18,6 +18,9 @@ doc_out = model.encode(
 
 doc_vecs = doc_out["dense_vecs"] # (N, 1024)
 
+for i in range(len(docs)):
+    print(f"Doc {i} vec:", doc_vecs[i], len(doc_vecs[i]))
+
 q_out = model.encode(
     ["İade süresi nedir?"],
     batch_size=1,

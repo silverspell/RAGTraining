@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any, Iterable
 import hashlib
 import tiktoken
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+from FlagEmbedding import BGEM3FlagModel
 
 @dataclass
 class Chunk:
@@ -125,11 +126,31 @@ if __name__ == "__main__":
     chunks = chunk_documents(
         sample_docs,
         encoding_name="o200k_base",
-        chunk_size=200,       # demo için küçük
-        chunk_overlap=30,
+        chunk_size=30,       # demo için küçük
+        chunk_overlap=3,
     )
-
+    
     print_chunk_stats(chunks)
+    print("----------------------------------------------")
+    """
     print("\n--- Example chunk ---")
     print(chunks[0].metadata)
     print(chunks[0].text)
+    """
+
+
+    
+    model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True) # GPU varsa fp16 kullan
+    docs = [c.text for c in chunks]
+    doc_out = model.encode(
+        docs,
+        batch_size=32,
+        max_length=1024,
+        return_dense=True,
+        return_sparse=False,
+        return_colbert_vecs=False
+    )
+
+    doc_vecs = doc_out["dense_vecs"] # (N, 1024)
+    for i in range(len(docs)):
+        print(f"Doc {i} vec:", doc_vecs[i], len(doc_vecs[i]))

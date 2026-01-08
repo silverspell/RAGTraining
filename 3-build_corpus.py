@@ -254,7 +254,7 @@ if __name__ == "__main__":
         docs,
         encoding_name="o200k_base",
         chunk_size=30,
-        chunk_overlap=10,
+        chunk_overlap=5,
     )
     print_stats(chunks)
 
