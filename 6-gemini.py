@@ -17,6 +17,7 @@ def main():
     args = ap.parse_args()
     
     response = ask_gemini_cli(args.query, args.source_id)
+    print("-----------------------------------------")
     print(f"Gemini response: {response}")
     
 
