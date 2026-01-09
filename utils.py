@@ -185,7 +185,7 @@ def rank_against_corpus(
     source_id: str | None = None,
 ) -> Dict[str, List[Tuple[CorpusRow, float]]]:
 
-    if source_id is not None: 
+    if source_id is not None or source_id != "": 
         filtered_corpus = [r for r in corpus if r.metadata.get("source_id") == source_id]
     else:
         filtered_corpus = corpus
