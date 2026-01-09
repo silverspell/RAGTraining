@@ -1,0 +1,15 @@
+Sen uzman bir prompt gelişitiricisin. 
+Sana verilen promptları PERSONA, TASK, CONTEXT, FORMAT framework'une uygun olarak zenginleştirirsin. 
+Aşağıda Hepsiburada RAG atölyesi için kullandığımız prompt'u zenginleştir ve prompt çıktısını düz metin olarak ver:
+
+---
+Aşağıdaki "KAYNAKLAR" bölümünde verilen bilgileri kullanarak, "SORU"yu yanıtla.
+Cevapta context içerisinde kullandığın (Kaynak: ) olarak geçen kaynakların adlarını belirt.
+
+KAYNAKLAR:
+{context}
+
+SORU:
+{query}
+
+Cevap:

@@ -99,13 +99,13 @@ def ask_gemini(query: str, source_id: str | None = None) -> str:
 
     rankings = rank_against_corpus(q_vec, corpus, top_k=3, source_id=source_id)
     
-    """
+    
     print("Top rankings:")
     for row, score in rankings:
         print(f"ID: {row.id}, Score: {score:.4f}, Text: {row.text[:100]}..., Metadata: {row.metadata}")
-    """
+    
 
-    chunks = [(r.text, r.metadata["source_id"]) for r, s in rankings if s > 0.5]
+    chunks = [(r.text, r.metadata["source_id"]) for r, s in rankings]
 
     context = "Context:\n" + "\n\n".join([f"- {chunk[0]} (Kaynak: {chunk[1]})" for chunk in chunks])
     final_prompt = f"""
@@ -185,7 +185,7 @@ def rank_against_corpus(
     source_id: str | None = None,
 ) -> Dict[str, List[Tuple[CorpusRow, float]]]:
 
-    if source_id is not None or source_id != "": 
+    if source_id is not None: 
         filtered_corpus = [r for r in corpus if r.metadata.get("source_id") == source_id]
     else:
         filtered_corpus = corpus
@@ -198,6 +198,6 @@ def rank_against_corpus(
     cos_idx = np.argpartition(-cos_scores, kth=k-1)[:k]
     cos_idx = cos_idx[np.argsort(-cos_scores[cos_idx])]
 
-    cosine_rank = [(filtered_corpus[i], float(cos_scores[i])) for i in cos_idx]
+    cosine_rank = [(filtered_corpus[i], float(cos_scores[i])) for i in cos_idx if cos_scores[i] > 0.5]
 
     return cosine_rank
